@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#6366F1">
+<title>FLOW — Take Control. Get Things Done.</title>
+<style>
+:root{--bg:#F4F5FB;--card:#FFFFFF;--txt:#0B1020;--mut:#6B7280;--line:#E8EAF2;--acc:#6366F1;--acc2:#A855F7;--ok:#10B981;--warn:#F59E0B;--bad:#EF4444;--r:20px;--sh:0 1px 2px rgba(16,24,40,.05),0 10px 30px rgba(16,24,40,.07)}
+@media (prefers-color-scheme:dark){:root{--bg:#070B16;--card:#121B30;--txt:#E8ECF5;--mut:#8C96AD;--line:#1F2B46;--sh:0 10px 30px rgba(0,0,0,.4)}}
+body.light{--bg:#F4F5FB;--card:#FFF;--txt:#0B1020;--mut:#6B7280;--line:#E8EAF2;--sh:0 10px 30px rgba(16,24,40,.07)}
+body.dark{--bg:#070B16;--card:#121B30;--txt:#E8ECF5;--mut:#8C96AD;--line:#1F2B46;--sh:0 10px 30px rgba(0,0,0,.4)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding:env(safe-area-inset-top,0px) 0 calc(84px + env(safe-area-inset-bottom,0px));overflow-x:hidden;transition:background .3s,color .3s}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 6px}
+.hi{font-size:20px;font-weight:700;letter-spacing:-.2px}
+.dt{font-size:13px;color:var(--mut);text-transform:capitalize}
+.avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:0;font-weight:700;font-size:17px;cursor:pointer;box-shadow:0 6px 16px rgba(99,102,241,.35)}
+main{padding:6px 14px 20px}
+.view{display:none}.view.on{display:block;animation:up .35s ease both}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh);animation:up .4s ease both}
+.ch{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+.ch h3{font-size:15px;font-weight:700}
+.ch small,.meta,small{color:var(--mut);font-size:12px}
+.hero{background:linear-gradient(135deg,var(--acc) 0%,var(--acc2) 100%);color:#fff;border-radius:24px;padding:20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;box-shadow:0 18px 40px rgba(99,102,241,.35);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.12)}
+.hero .lbl{font-size:12px;opacity:.85;letter-spacing:.4px;text-transform:uppercase}
+.hero .big{font-size:38px;font-weight:800;letter-spacing:-1px;margin:4px 0}
+.hero .sub{font-size:13px;opacity:.9}
+.hero .ring{color:#fff}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.tile{background:var(--card);border-radius:16px;padding:12px 6px;text-align:center;box-shadow:var(--sh)}
+.tile b{display:block;font-size:18px}
+.tile span{font-size:11px;color:var(--mut)}
+.tile.bad b{color:var(--bad)}
+.task{position:relative;display:flex;gap:12px;align-items:flex-start;padding:12px 0 12px 14px;border-bottom:1px solid var(--line)}
+.task:last-child{border-bottom:0}
+.task:before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--pc,var(--acc))}
+.task.done .tt{text-decoration:line-through;color:var(--mut)}
+.grow{flex:1;min-width:0}
+.tt{font-size:15px;font-weight:600;word-break:break-word;line-height:1.35}
+.rank{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:7px;background:var(--acc);color:#fff;font-size:11px;margin-right:6px;vertical-align:2px}
+.scr{font-size:12px;font-weight:700;color:var(--acc);background:rgba(99,102,241,.12);border-radius:10px;padding:3px 8px;align-self:center}
+.x{background:none;border:0;color:var(--mut);font-size:16px;cursor:pointer;padding:4px 6px;border-radius:8px}
+.x:active{background:var(--line)}
+.chk{width:24px;height:24px;border-radius:8px;border:2px solid var(--line);background:transparent;color:#fff;display:grid;place-items:center;flex:0 0 auto;cursor:pointer;margin-top:1px;font-size:13px;transition:all .2s}
+.chk.on{background:var(--ok);border-color:var(--ok)}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+.pbar{height:5px;background:var(--line);border-radius:5px;overflow:hidden;margin-top:7px}
+.pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:5px;transition:width .4s}
+.tl{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.tl:last-child{border-bottom:0}
+.tl b{font-size:13px;color:var(--acc);min-width:44px}
+.tl .tt{font-size:14px}
+.row{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.ins{font-size:14px;line-height:1.5;padding:10px 0;border-bottom:1px solid var(--line)}
+.ins:last-child{border-bottom:0}
+.ins.warn{color:var(--warn)}
+.ins small{display:block;color:var(--mut);margin-top:2px;line-height:1.4}
+details{margin-top:6px;font-size:12px;color:var(--mut)}
+details summary{cursor:pointer;color:var(--acc);font-weight:600;list-style:none}
+details ul{padding-left:16px;margin-top:4px;line-height:1.6}
+.qc{display:flex;gap:8px;background:var(--card);border-radius:18px;padding:6px 6px 6px 16px;box-shadow:var(--sh);margin-bottom:8px;align-items:center}
+.qc input{flex:1;border:0;background:transparent;color:var(--txt);font-size:15px;padding:10px 0;outline:none;min-width:0}
+.qc button,.fab{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:0;border-radius:14px;width:44px;height:44px;font-size:22px;cursor:pointer;box-shadow:0 8px 20px rgba(99,102,241,.35)}
+.prev{display:flex;flex-wrap:wrap;gap:6px;min-height:0;margin:0 4px 12px}
+.prev span{font-size:12px;background:rgba(99,102,241,.12);color:var(--acc);border-radius:10px;padding:4px 9px}
+.search{width:100%;background:var(--card);border:0;border-radius:14px;padding:12px 14px;color:var(--txt);font-size:14px;margin-bottom:10px;box-shadow:var(--sh);outline:none}
+.chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px;scrollbar-width:none}
+.chip{flex:0 0 auto;background:var(--card);color:var(--txt);border:0;border-radius:999px;padding:7px 13px;font-size:13px;box-shadow:var(--sh);cursor:pointer}
+.chip.on{background:var(--acc);color:#fff}
+.empty{text-align:center;color:var(--mut);padding:22px 0;font-size:14px}
+.empty.sm{padding:10px 0;font-size:12px}
+input,select,textarea{width:100%;background:var(--bg);color:var(--txt);border:1px solid var(--line);border-radius:14px;padding:11px 13px;font-size:15px;margin-bottom:10px;outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+textarea{min-height:70px;resize:vertical}
+label{font-size:12px;color:var(--mut);display:block;margin:2px 0 5px;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{width:100%;border:0;border-radius:16px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;margin-top:6px;transition:transform .1s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;box-shadow:0 10px 24px rgba(99,102,241,.3)}
+.btn.ghost{background:transparent;color:var(--acc);border:1.5px solid var(--acc)}
+.btn.danger{background:rgba(239,68,68,.12);color:var(--bad)}
+.mini{background:rgba(99,102,241,.12);color:var(--acc);border:0;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer}
+.btns{display:flex;gap:8px;margin-top:6px}.btns .btn{margin-top:0}
+.tiles-menu{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.menu{background:var(--card);border-radius:20px;padding:18px;box-shadow:var(--sh);cursor:pointer;border:0;text-align:left;color:var(--txt);font:inherit}
+.menu i{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-style:normal;font-size:18px;margin-bottom:12px}
+.menu b{display:block;font-size:15px}
+.menu small{font-size:12px}
+.sw{display:flex;gap:8px;margin-top:4px}
+.sw button{width:28px;height:28px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.sw button.on{border-color:var(--txt)}
+.pj{cursor:pointer}
+.pjr{display:flex;align-items:center;gap:14px}
+.pjr h3{font-size:16px}
+.ring{display:block}
+.nav{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-around;background:var(--card);border-radius:24px;padding:8px;box-shadow:0 14px 40px rgba(0,0,0,.18);z-index:20}
+.nav button{flex:1;background:none;border:0;color:var(--mut);padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;cursor:pointer;border-radius:16px;transition:all .2s}
+.nav button i{font-style:normal;font-size:18px;line-height:1}
+.nav button.on{color:var(--acc);background:rgba(99,102,241,.12);font-weight:700}
+.fab{position:fixed;right:18px;bottom:calc(92px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:18px;z-index:19;font-size:28px}
+.sheetbg{position:fixed;inset:0;background:rgba(3,7,18,.5);backdrop-filter:blur(3px);display:none;z-index:50;align-items:flex-end}
+.sheetbg.on{display:flex}
+.sheet{width:100%;max-height:90vh;overflow:auto;background:var(--card);border-radius:26px 26px 0 0;padding:14px 18px calc(22px + env(safe-area-inset-bottom,0px));animation:up .3s ease both}
+.grab{width:40px;height:5px;border-radius:5px;background:var(--line);margin:0 auto 12px}
+.sh-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sh-h h3{font-size:18px}
+.big-in{font-size:18px!important;font-weight:600}
+.page{position:fixed;inset:0;background:var(--bg);z-index:40;overflow-y:auto;display:none;padding:env(safe-area-inset-top,0px) 14px calc(30px + env(safe-area-inset-bottom,0px));animation:up .3s ease both}
+.page.on{display:block}
+.phead{display:flex;align-items:center;gap:10px;padding:14px 0 10px;position:sticky;top:0;background:var(--bg);z-index:2}
+.phead button{background:var(--card);border:0;color:var(--txt);width:40px;height:40px;border-radius:14px;font-size:20px;box-shadow:var(--sh);cursor:pointer}
+.phead h2{font-size:20px;font-weight:700}
+.kan{display:grid;grid-auto-flow:column;grid-auto-columns:78%;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}
+.col{background:var(--card);border-radius:20px;padding:12px;scroll-snap-align:start;box-shadow:var(--sh);min-height:200px}
+.colh{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.colh b{flex:1}
+.colh span{font-size:12px;color:var(--mut)}
+.kc{background:var(--bg);border-radius:14px;padding:11px;margin-bottom:8px;cursor:pointer}
+.kmv{display:flex;justify-content:flex-end;gap:6px;margin-top:8px}
+.kmv button{background:var(--card);border:0;border-radius:9px;padding:4px 10px;color:var(--txt);cursor:pointer}
+.pjhead{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--sh);margin-bottom:12px;color:var(--pc)}
+.pjhead h3{color:var(--txt);font-size:17px}
+.hcard{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
+.hm{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin-top:10px}
+.hm i{aspect-ratio:1;border-radius:4px;background:var(--line)}
+.hm i.on{background:var(--ok)}
+.hm i.due{outline:1.5px dashed var(--mut);outline-offset:-1px}
+.stat-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.stat-row:last-child{border-bottom:0}
+.bars{display:flex;align-items:flex-end;gap:8px;height:120px;margin-top:8px}
+.bc{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
+.bc i{width:100%;background:linear-gradient(180deg,var(--acc2),var(--acc));border-radius:8px 8px 4px 4px;min-height:3px;transition:height .5s}
+.bc small{margin-top:6px;font-size:10px}
+.modes{display:flex;gap:8px;margin-bottom:14px}
+.modes button{flex:1;background:var(--card);border:0;border-radius:14px;padding:10px 4px;color:var(--txt);box-shadow:var(--sh);cursor:pointer;font-size:13px}
+.modes button.on{background:var(--acc);color:#fff}
+.timer{text-align:center;background:var(--card);border-radius:28px;padding:20px 16px;box-shadow:var(--sh);margin-bottom:12px;color:var(--acc)}
+.timer .ring{margin:0 auto}
+.timer select{margin:10px 0 0}
+.toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(10px);background:var(--txt);color:var(--bg);padding:11px 18px;border-radius:14px;font-size:14px;z-index:99;opacity:0;transition:all .25s;pointer-events:none;max-width:90%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.spark{width:100%;height:90px;display:block}
+.hint{font-size:12px;color:var(--mut);margin:0 6px 10px}
+/* ===== FLOW v4: giao diện nâng cấp ===== */
+:root{--acc:#6D5BFF;--acc2:#22D3EE;--r:24px;--sh:0 1px 0 rgba(255,255,255,.7) inset,0 14px 40px rgba(30,27,75,.08)}
+@media (prefers-color-scheme:dark){:root{--acc:#8B7BFF;--acc2:#38E1F5;--sh:0 1px 0 rgba(255,255,255,.04) inset,0 16px 48px rgba(0,0,0,.5)}}
+body{background:radial-gradient(1100px 620px at 0% -12%,color-mix(in srgb,var(--acc) 22%,transparent),transparent 60%),radial-gradient(900px 520px at 110% 8%,color-mix(in srgb,var(--acc2) 16%,transparent),transparent 55%),var(--bg);background-attachment:fixed;font-feature-settings:"cv11","ss01";-webkit-font-smoothing:antialiased}
+.card,.tile,.menu,.qc,.nav,.sheet,.kc,.col,.hcard,.pjhead,.timer,.modes button,.search{background:color-mix(in srgb,var(--card) 80%,transparent);backdrop-filter:saturate(1.6) blur(20px);-webkit-backdrop-filter:saturate(1.6) blur(20px);border:1px solid color-mix(in srgb,var(--line) 75%,transparent)}
+.card{padding:18px;margin-bottom:14px;transition:transform .2s ease,box-shadow .2s ease}
+.card:active{transform:scale(.993)}
+.hi{font-size:24px;font-weight:800;letter-spacing:-.4px}
+.dt{font-size:13px;font-weight:500}
+.avatar{box-shadow:0 8px 22px color-mix(in srgb,var(--acc) 40%,transparent);border:2px solid rgba(255,255,255,.35)}
+.ch{margin-bottom:12px}
+.ch h3{font-size:16px;font-weight:750;letter-spacing:-.2px}
+.hero{background:linear-gradient(135deg,#6D5BFF 0%,#A855F7 48%,#22D3EE 120%);border-radius:28px;padding:22px 22px 20px;box-shadow:0 22px 50px color-mix(in srgb,var(--acc) 40%,transparent),0 1px 0 rgba(255,255,255,.3) inset;border:0}
+.hero:before{content:"";position:absolute;left:-30px;bottom:-60px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.10)}
+.hero .big{font-size:46px;font-weight:850;letter-spacing:-1.5px;font-variant-numeric:tabular-nums}
+.hero .lbl{font-weight:650;opacity:.9}
+.hero .sub{font-weight:550;opacity:.95}
+.tiles{gap:10px}
+.tile{border-radius:20px;padding:14px 8px}
+.tile b{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.tile span{font-size:11px;font-weight:600;letter-spacing:.2px}
+.task{padding:14px 0 14px 16px;transition:background .2s}
+.task:before{width:4px;border-radius:4px;box-shadow:0 0 14px color-mix(in srgb,var(--pc) 55%,transparent)}
+.tt{font-size:15.5px;font-weight:650}
+.rank{background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 4px 10px color-mix(in srgb,var(--acc) 35%,transparent)}
+.scr{background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 16%,transparent),color-mix(in srgb,var(--acc2) 16%,transparent));color:var(--acc);font-weight:800;padding:4px 9px}
+.chk{border-radius:9px;transition:transform .15s,background .2s}
+.chk:active{transform:scale(.88)}
+.chk.on{background:linear-gradient(135deg,#10B981,#34D399);border-color:transparent;box-shadow:0 4px 10px rgba(16,185,129,.35)}
+.pbar{height:6px}
+.pbar i{background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.tl{padding:10px 0}
+.tl b{background:linear-gradient(135deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800;min-width:50px}
+.ins{padding:12px 0}
+.ins.warn{color:color-mix(in srgb,#F59E0B 85%,var(--txt))}
+.ins.warn:before{content:"●";color:#F59E0B;margin-right:8px;font-size:9px;vertical-align:3px}
+details summary{font-weight:700;color:var(--acc)}
+.qc{border-radius:22px;padding:6px 6px 6px 18px;box-shadow:var(--sh)}
+.qc input::placeholder{color:var(--mut);opacity:.8}
+.qc button,.fab{background:linear-gradient(135deg,var(--acc),var(--acc2));border-radius:16px;box-shadow:0 10px 24px color-mix(in srgb,var(--acc) 40%,transparent)}
+.fab{width:58px;height:58px;border-radius:20px;font-weight:300;bottom:calc(96px + env(safe-area-inset-bottom,0px));right:20px}
+.prev span{background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--acc);font-weight:600;border-radius:12px;padding:5px 10px}
+.search{border-radius:18px;padding:13px 16px;font-size:15px}
+.chip{border-radius:999px;font-weight:600;padding:8px 14px;border:1px solid color-mix(in srgb,var(--line) 75%,transparent)}
+.chip.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border-color:transparent;box-shadow:0 8px 18px color-mix(in srgb,var(--acc) 35%,transparent)}
+input,select,textarea{border-radius:16px;padding:13px 14px;background:color-mix(in srgb,var(--bg) 70%,transparent)}
+label{font-size:12px;font-weight:650;letter-spacing:.2px}
+.btn{border-radius:18px;padding:15px;font-weight:700;letter-spacing:.1px}
+.btn.primary{background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 14px 30px color-mix(in srgb,var(--acc) 35%,transparent)}
+.btn.ghost{border-width:1.5px;background:color-mix(in srgb,var(--acc) 6%,transparent)}
+.menu{border-radius:26px;padding:20px;transition:transform .15s ease,box-shadow .2s;box-shadow:var(--sh)}
+.menu:active{transform:scale(.96)}
+.menu i{border-radius:16px;width:46px;height:46px;box-shadow:0 10px 22px color-mix(in srgb,var(--acc) 35%,transparent)}
+.menu b{font-size:16px;font-weight:750;margin-bottom:2px}
+.menu small{line-height:1.35}
+.nav{left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));border-radius:28px;padding:7px;box-shadow:0 18px 48px rgba(10,10,40,.22),0 1px 0 rgba(255,255,255,.4) inset}
+.nav button{border-radius:20px;padding:8px 0 7px;gap:4px;font-size:11px;font-weight:600;color:var(--mut)}
+.nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nav button.on{color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 10px 22px color-mix(in srgb,var(--acc) 40%,transparent)}
+.sheet{border-radius:32px 32px 0 0;padding:16px 20px calc(24px + env(safe-area-inset-bottom,0px))}
+.sheetbg{background:rgba(5,8,22,.45)}
+.sh-h h3{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.big-in{font-size:19px!important;font-weight:650;padding:15px 16px!important}
+.phead{padding:16px 0 12px}
+.phead h2{font-size:22px;font-weight:800;letter-spacing:-.4px}
+.phead button{border-radius:16px}
+.kan{gap:12px}
+.col{border-radius:24px;padding:14px}
+.colh b{font-size:14px;font-weight:750}
+.kc{border-radius:18px;padding:13px;background:color-mix(in srgb,var(--bg) 60%,transparent);border:1px solid color-mix(in srgb,var(--line) 70%,transparent);transition:transform .15s}
+.kc:active{transform:scale(.97)}
+.pjhead{border-radius:26px;padding:18px}
+.pjhead h3{font-size:18px;font-weight:800}
+.hcard{border-radius:26px;padding:18px}
+.hm{gap:5px}
+.hm i{border-radius:6px}
+.hm i.on{background:linear-gradient(135deg,#10B981,#34D399)}
+.stat-row{font-size:14.5px;padding:11px 0}
+.stat-row b{font-variant-numeric:tabular-nums}
+.bc i{background:linear-gradient(180deg,var(--acc2),var(--acc));border-radius:10px 10px 5px 5px}
+.bc small{font-weight:600;color:var(--mut)}
+.modes{gap:10px}
+.modes button{border-radius:18px;font-weight:650;padding:12px 4px}
+.modes button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;box-shadow:0 10px 22px color-mix(in srgb,var(--acc) 35%,transparent)}
+.timer{border-radius:32px;padding:24px 18px;color:var(--acc)}
+.toast{border-radius:18px;font-weight:600;padding:13px 20px}
+.empty{font-weight:500}
+.spark{height:100px}
+.hero .ring{filter:drop-shadow(0 4px 12px rgba(0,0,0,.15))}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><div class="hi" id="hi"></div><div class="dt" id="dt"></div></div>
+  <button class="avatar" id="avatar" onclick="openPage('settings')" aria-label="Cài đặt"></button>
+</header>
+<main>
+  <section class="view on" id="v-dash"></section>
+  <section class="view" id="v-tasks">
+    <div class="qc"><input id="qc" placeholder="Thử: gửi báo cáo mai 15h !cao #KH 30p" oninput="qcPreview()" onkeydown="if(event.key==='Enter')qcAdd()"><button onclick="qcAdd()" aria-label="Thêm">+</button></div>
+    <div class="prev" id="qcp"></div>
+    <div class="chips" id="chips"></div>
+    <input class="search" id="search" placeholder="Tìm công việc, thẻ, ghi chú…" oninput="renderTasks()">
+    <div id="tasklist"></div>
+  </section>
+  <section class="view" id="v-cal"></section>
+  <section class="view" id="v-proj">
+    <div class="card">
+      <div class="ch"><h3>Dự án mới</h3></div>
+      <input id="p-name" placeholder="Tên dự án">
+      <div class="grid2"><div><label>Hạn chót</label><input type="date" id="p-due"></div><div><label>Màu</label><div class="sw" id="p-sw"></div></div></div>
+      <button class="btn primary" onclick="addProj()">Tạo dự án</button>
+    </div>
+    <div id="projlist"></div>
+  </section>
+  <section class="view" id="v-more">
+    <div class="tiles-menu">
+      <button class="menu" onclick="openPage('habits')"><i>↻</i><b>Thói quen</b><small>Chuỗi, lịch sử, tỷ lệ</small></button>
+      <button class="menu" onclick="openPage('focus')"><i>◷</i><b>Tập trung</b><small>Pomodoro và thống kê</small></button>
+      <button class="menu" onclick="openPage('stats')"><i>▲</i><b>Phân tích</b><small>Năng suất, xu hướng</small></button>
+      <button class="menu" onclick="openPage('report')"><i>✉</i><b>Báo cáo</b><small>Gmail và tự động gửi</small></button>
+      <button class="menu" onclick="openPage('settings')"><i>⚙</i><b>Cài đặt</b><small>Hồ sơ, giao diện, dữ liệu</small></button>
+      <button class="menu" onclick="openPage('data')"><i>⤓</i><b>Dữ liệu</b><small>Sao lưu, khôi phục, CSV</small></button>
+    </div>
+  </section>
+</main>
+<button class="fab" onclick="openTask()" aria-label="Thêm việc">+</button>
+<nav class="nav">
+  <button class="on" data-v="dash"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Tổng quan</button>
+  <button data-v="tasks"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Việc</button>
+  <button data-v="cal"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Lịch</button>
+  <button data-v="proj"><svg viewBox="0 0 24 24"><rect x="3.5" y="4" width="6" height="16" rx="2"/><rect x="14.5" y="4" width="6" height="10" rx="2"/></svg>Dự án</button>
+  <button data-v="more"><svg viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18.5" cy="12" r="1.6"/></svg>Thêm</button>
+</nav>
+<div class="sheetbg" id="sheetbg" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="sheet"></div></div>
+<div class="page" id="page">
+  <div class="phead"><button onclick="closePage()" aria-label="Quay lại">‹</button><h2 id="ptitle"></h2></div>
+  <div id="pbody"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const KEY='flow.v3';
+const VN={3:'Cao',2:'Trung bình',1:'Thấp'};
+const PCOL={3:'var(--bad)',2:'var(--warn)',1:'var(--ok)'};
+const PCOLORS=['#6366F1','#10B981','#F59E0B','#EF4444','#06B6D4','#EC4899'];
+const DEF={tasks:[],projects:[],habits:[],focus:[],settings:{name:'',email:'',sync:'',capacity:8,start:'08:00',theme:'system',weekStart:1,accent:'#6366F1'}};
+
+function load(){
+  let o={};
+  for(const k of [KEY,'flow.v2','flow.v1']){try{const s=localStorage.getItem(k);if(s){o=JSON.parse(s);break;}}catch(e){}}
+  const S={tasks:o.tasks||[],projects:o.projects||[],habits:o.habits||[],focus:o.focus||[],settings:Object.assign({},DEF.settings,o.settings||{})};
+  S.tasks.forEach(t=>{t.subtasks=t.subtasks||[];t.notes=t.notes||'';t.status=t.status||(t.done?'done':'todo');t.projectId=t.projectId||'';t.repeat=t.repeat||'none';t.time=t.time||'';t.postponed=t.postponed||0;t.tag=t.tag||'';t.focusMins=t.focusMins||0;});
+  S.habits.forEach(h=>{h.log=h.log||{};h.freq=h.freq||'daily';h.target=h.target||3;});
+  return S;
+}
+let S=load();
+let taskFilter='open', calView='week', calAnchor='', calSel='', kanbanMode='kanban', PAGE=null, PARG=null, draftSub=[], nextStatus='todo', newProjColor=PCOLORS[0];
+calAnchor=todayStr();calSel=todayStr();
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));scheduleSync();}catch(e){toast('Không lưu được dữ liệu');}}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function ds(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function todayStr(){return ds(new Date());}
+function addDays(s,n){const[y,m,d]=s.split('-').map(Number);return ds(new Date(y,m-1,d+n));}
+function diffDays(a,b){const[y,m,d]=a.split('-').map(Number),[y2,m2,d2]=b.split('-').map(Number);return Math.round((new Date(y2,m2-1,d2)-new Date(y,m-1,d))/864e5);}
+function daysUntil(due){return due?diffDays(todayStr(),due):null;}
+function dowOf(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).getDay();}
+function fmtD(s){return s.split('-').reverse().join('/');}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));}
+function fmt(m){const h=Math.floor(m/60),r=m%60;return h?`${h}g${r?' '+r+'p':''}`:`${r}p`;}
+function hhmm(min){return String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0');}
+function mmss(sec){return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');}
+function accent(){return S.settings.accent||'#6366F1';}
+function find(id){return S.tasks.find(t=>t.id===id);}
+function open_(){return S.tasks.filter(t=>!t.done);}
+function doneList(){return S.tasks.filter(t=>t.done&&t.doneAt);}
+function empty(m){return `<div class="empty">${m}</div>`;}
+function tile(v,l,c){return `<div class="tile ${c||''}"><b>${v}</b><span>${l}</span></div>`;}
+
+function toast(msg){
+  const t=$('toast');t.textContent=msg;t.classList.add('on');
+  clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2200);
+}
+
+/* ============ VISUAL PRIMITIVES ============ */
+function ring(p,size=76,stroke=8,label=''){
+  const r=(size-stroke)/2,c=2*Math.PI*r,o=c*(1-Math.min(1,Math.max(0,p)));
+  return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="currentColor" stroke-opacity=".18" stroke-width="${stroke}" fill="none"/><circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="currentColor" stroke-width="${stroke}" fill="none" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${o.toFixed(1)}" transform="rotate(-90 ${size/2} ${size/2})" style="transition:stroke-dashoffset .6s ease"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="currentColor" font-size="${Math.round(size*0.22)}" font-weight="700">${label}</text></svg>`;
+}
+function spark(vals,color){
+  const w=320,h=90,n=vals.length,max=Math.max(1,...vals);
+  const pts=vals.map((v,i)=>[i*(w/Math.max(1,n-1)),h-8-(v/max)*(h-18)]);
+  const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const id='g'+color.replace('#','');
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".35"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${d} L${w} ${h} L0 ${h} Z" fill="url(#${id})"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function bars(vals,labels){
+  const max=Math.max(1,...vals);
+  return `<div class="bars">${vals.map((v,i)=>`<div class="bc"><i style="height:${Math.max(3,v/max*100)}%" title="${v}"></i><small>${labels[i]}</small></div>`).join('')}</div>`;
+}
+
+/* ============ NATURAL-LANGUAGE CAPTURE ============ */
+function parseQuick(s){
+  const r={title:s,due:'',priority:undefined,duration:0,tag:'',time:'',repeat:'none'};
+  const cut=(re,fn)=>{const m=r.title.match(re);if(m){fn(m);r.title=r.title.replace(m[0],' ').replace(/\s+/g,' ').trim();}};
+  cut(/#(\S+)/,m=>r.tag=m[1]);
+  cut(/!(cao|tb|thấp|high|low|khẩn)/i,m=>{const k=m[1].toLowerCase();r.priority=(k==='cao'||k==='high'||k==='khẩn')?3:k==='tb'?2:1;});
+  cut(/\b(\d+)\s*(?:p|phút)\b/i,m=>r.duration=+m[1]);
+  cut(/\b(\d{1,2})(?::(\d{2})|h(\d{2})?)\b/i,m=>{const h=+m[1],mi=+(m[2]||m[3]||0);if(h<24&&mi<60)r.time=String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0');});
+  cut(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?\b/,m=>{const y=m[3]?+m[3]:new Date().getFullYear();r.due=ds(new Date(y,+m[2]-1,+m[1]));});
+  if(!r.due) cut(/\b(ngày mai|hôm nay|hom nay|mốt|mai)\b/i,m=>{const k=m[1].toLowerCase();r.due=addDays(todayStr(),k==='mốt'?2:(k==='hôm nay'||k==='hom nay')?0:1);});
+  if(!r.due) cut(/\b(?:thứ\s*([2-7])|chủ nhật|cn)\b/i,m=>{const dow=m[1]?+m[1]-1:0;const t=todayStr();r.due=addDays(t,(dow-dowOf(t)+7)%7);});
+  cut(/\b(hằng ngày|mỗi ngày)\b/i,()=>r.repeat='daily');
+  cut(/\b(hằng tuần|mỗi tuần)\b/i,()=>r.repeat='weekly');
+  if(r.repeat!=='none'&&!r.due) r.due=todayStr();
+  return r;
+}
+function qcPreview(){
+  const v=$('qc').value.trim();
+  if(!v){$('qcp').innerHTML='';return;}
+  const p=parseQuick(v),c=[];
+  c.push(`Tiêu đề: ${esc(p.title)||'…'}`);
+  if(p.due)c.push('Hạn: '+fmtD(p.due));
+  if(p.time)c.push('Giờ: '+p.time);
+  if(p.priority)c.push('Ưu tiên: '+VN[p.priority]);
+  if(p.duration)c.push('Thời lượng: '+p.duration+' phút');
+  if(p.tag)c.push('Thẻ: #'+esc(p.tag));
+  if(p.repeat!=='none')c.push('Lặp: '+(p.repeat==='daily'?'hằng ngày':'hằng tuần'));
+  $('qcp').innerHTML=c.map(x=>`<span>${x}</span>`).join('');
+}
+function makeTask(o){
+  return Object.assign({id:uid(),title:'',notes:'',due:'',time:'',priority:2,duration:30,tag:'',projectId:'',repeat:'none',subtasks:[],status:'todo',done:false,doneAt:null,postponed:0,reminded:false,focusMins:0,created:new Date().toISOString()},o);
+}
+function qcAdd(){
+  const raw=$('qc').value.trim();if(!raw)return;
+  const p=parseQuick(raw);
+  if(!p.title){toast('Nhập tên công việc');return;}
+  S.tasks.push(makeTask({title:p.title,due:p.due,time:p.time,priority:p.priority??2,duration:p.duration||30,tag:p.tag,repeat:p.repeat}));
+  $('qc').value='';$('qcp').innerHTML='';
+  save();renderAll();toast('Đã thêm: '+p.title);
+}
+
+/* ============ SMART ENGINE (minh bạch, giải thích được) ============ */
+const cap=()=>(+S.settings.capacity||8)*60;
+
+function score(t){
+  const f=[];
+  f.push([`Mức ưu tiên ${VN[t.priority]||'Trung bình'}`,({3:30,2:18,1:8})[t.priority]??18]);
+  const d=daysUntil(t.due);
+  let u;
+  if(d===null)u=4;
+  else if(d<0)u=Math.min(45,40-d*2);
+  else u=Math.round(40*Math.exp(-d/3));
+  if(u)f.push([d===null?'Chưa có hạn':d<0?`Quá hạn ${-d} ngày`:d===0?'Hết hạn hôm nay':`Còn ${d} ngày`,u]);
+  const q=Math.max(0,10-Math.floor(t.duration/15));
+  if(q)f.push([`Thời lượng ${fmt(t.duration)}, dễ hoàn thành`,q]);
+  const p=Math.min(10,(t.postponed||0)*4);
+  if(p)f.push([`Đã bị dời ${t.postponed} lần`,p]);
+  return {score:Math.min(100,f.reduce((a,x)=>a+x[1],0)),factors:f};
+}
+
+function simulate(){
+  const tasks=open_().map(t=>({t,left:t.duration,sc:score(t).score,end:null}));
+  const days=[];const T=todayStr();
+  for(let i=0;i<90&&tasks.some(x=>x.left>0);i++){
+    const date=addDays(T,i);let room=cap();const items=[];
+    const q=tasks.filter(x=>x.left>0).sort((a,b)=>{
+      const ad=a.t.due||'9999-12-31',bd=b.t.due||'9999-12-31';
+      return ((ad<=date?0:1)-(bd<=date?0:1))||(ad<bd?-1:ad>bd?1:0)||(b.sc-a.sc);
+    });
+    for(const x of q){
+      if(room<=0)break;
+      const take=Math.min(room,x.left);
+      x.left-=take;room-=take;items.push({t:x.t,mins:take});
+      if(x.left===0)x.end=date;
+    }
+    days.push({date,items,load:cap()-room});
+  }
+  const late=tasks.filter(x=>x.t.due&&(x.end===null||x.end>x.t.due)).map(x=>({t:x.t,end:x.end,days:x.end?diffDays(x.t.due,x.end):null}));
+  return {days,late,overloaded:days.filter(d=>d.load>=cap()&&d.items.length>1)};
+}
+
+function todayPlan(){
+  const day=simulate().days[0];if(!day)return [];
+  const[h,m]=(S.settings.start||'08:00').split(':').map(Number);
+  let at=h*60+m;const blocks=[];
+  for(const it of day.items){blocks.push({t:it.t,start:at,mins:it.mins});at+=it.mins+(it.mins>=45?10:0);}
+  return blocks;
+}
+
+function focusOn(date){return S.focus.filter(f=>f.date===date).reduce((a,f)=>a+f.mins,0);}
+
+function isDue(h,d){return h.freq==='weekdays'?(dowOf(d)>=1&&dowOf(d)<=5):true;}
+function weekCount(h,ws){let c=0;for(let i=0;i<7;i++)if(h.log[addDays(ws,i)])c++;return c;}
+function streak(h){
+  const T=todayStr();
+  if(h.freq==='weekly'){
+    let ws=weekStartOf(T),n=0;
+    if(weekCount(h,ws)<h.target)ws=addDays(ws,-7);
+    while(weekCount(h,ws)>=h.target&&n<300){n++;ws=addDays(ws,-7);}
+    return n;
+  }
+  let d=h.log[T]?T:addDays(T,-1),n=0;
+  for(let i=0;i<400;i++){
+    if(isDue(h,d)){if(h.log[d])n++;else if(d!==T)break;}
+    d=addDays(d,-1);
+  }
+  return n;
+}
+function rate30(h){
+  const T=todayStr();let due=0,done=0;
+  for(let i=0;i<30;i++){const d=addDays(T,-i);if(isDue(h,d)){due++;if(h.log[d])done++;}}
+  return due?Math.round(done/due*100):0;
+}
+
+function stats(){
+  const done=doneList(),T=todayStr();
+  const series=[];
+  for(let i=13;i>=0;i--){const d=addDays(T,-i);series.push({d,n:done.filter(t=>t.doneAt.slice(0,10)===d).length});}
+  const ys=series.map(s=>s.n),xs=ys.map((_,i)=>i);
+  const mx=6.5,my=ys.reduce((a,b)=>a+b,0)/14;
+  const den=xs.reduce((a,x)=>a+(x-mx)**2,0)||1;
+  const slope=xs.reduce((a,x,i)=>a+(x-mx)*(ys[i]-my),0)/den;
+  const trend=slope>0.08?'đang tăng':slope<-0.08?'đang giảm':'ổn định';
+  const withDue=done.filter(t=>t.due);
+  const onTime=withDue.length?withDue.filter(t=>t.doneAt.slice(0,10)<=t.due).length/withDue.length:null;
+  const active=series.filter(s=>s.n>0).length/14;
+  const overdue=open_().filter(t=>t.due&&t.due<T).length;
+  const completion=S.tasks.length?done.length/S.tasks.length:0;
+  const parts={completion:Math.round(completion*30),onTime:Math.round((onTime??0.5)*40),consistency:Math.round(active*30),penalty:-Math.min(20,overdue*4)};
+  const total=Math.max(0,parts.completion+parts.onTime+parts.consistency+parts.penalty);
+  return {series,trend,onTime,total,parts,overdue,avgPerDay:ys.reduce((a,b)=>a+b,0)/14};
+}
+
+function procrastination(){
+  const T=todayStr();
+  return open_().filter(t=>(t.postponed||0)>=2||(t.due&&t.due<T&&diffDays((t.created||T).slice(0,10),T)>=7));
+}
+
+function insights(){
+  const out=[],sim=simulate(),st=stats(),T=todayStr();
+  sim.late.slice(0,3).forEach(x=>out.push({warn:true,
+    text:x.t.due<T?`“${esc(x.t.title)}” đã quá hạn.`:`“${esc(x.t.title)}” có nguy cơ trễ hạn.`,
+    why:`Dựa trên ${fmt(x.t.duration)} công việc, sức chứa ${S.settings.capacity}h/ngày và các việc có hạn sớm hơn. ${x.end?`Dự kiến xong ${fmtD(x.end)}, trễ ${x.days} ngày.`:'Không xếp được trong 90 ngày.'}` }));
+  sim.overloaded.slice(0,2).forEach(d=>out.push({warn:true,text:`Ngày ${fmtD(d.date)} quá tải: ${fmt(d.load)} việc.`,why:`Vượt sức chứa ${S.settings.capacity}h. Hãy dời bớt việc ưu tiên thấp.`}));
+  const pr=procrastination();
+  if(pr.length){const big=pr.find(t=>t.duration>60);
+    out.push({warn:true,text:`${pr.length} việc đang bị trì hoãn${big?`, ví dụ “${esc(big.title)}” (${fmt(big.duration)})`:''}.`,
+      why:big?'Việc dài thường bị né. Chia nhỏ thành các khối 25–30 phút.':'Việc bị dời nhiều lần cần quyết định: làm ngay hoặc bỏ.'});}
+  S.habits.forEach(h=>{
+    const y=addDays(T,-1);
+    if(isDue(h,y)&&!h.log[y]&&!h.log[T]&&streak(h)===0&&h.log&&Object.keys(h.log).length>3)
+      out.push({warn:true,text:`Thói quen “${esc(h.name)}” đã gãy chuỗi.`,why:'Bắt đầu lại hôm nay để giữ đều đặn; một ngày trượt không phải thất bại.'});
+  });
+  if(!focusOn(T)&&new Date().getHours()>=9&&open_().length)
+    out.push({text:'Hôm nay chưa có phiên tập trung nào.',why:'Thử một phiên 25 phút cho việc có điểm ưu tiên cao nhất.'});
+  if(st.trend!=='ổn định')out.push({text:`Năng suất hoàn thành ${st.trend} trong 14 ngày gần nhất.`,why:`Trung bình ${st.avgPerDay.toFixed(1)} việc/ngày, tính bằng hồi quy tuyến tính.`});
+  if(st.onTime!==null&&st.onTime<0.6)out.push({warn:true,text:`Chỉ ${Math.round(st.onTime*100)}% việc xong đúng hạn.`,why:'Đặt hạn sớm hơn thực tế 1–2 ngày để có vùng đệm.'});
+  if(!S.tasks.length)out.push({text:'Thêm công việc đầu tiên để FLOW bắt đầu phân tích.',why:''});
+  else if(!out.length)out.push({text:'Mọi thứ đang trong tầm kiểm soát.',why:'Không có việc trễ, quá tải hay trì hoãn đáng kể.'});
+  return out;
+}
+
+/* ============ TASK ROW ============ */
+function taskRow(t,o={}){
+  const d=daysUntil(t.due);
+  const prog=t.subtasks.length?t.subtasks.filter(s=>s.done).length/t.subtasks.length:(t.done?1:0);
+  const due=t.due?(d<0?`<span class="bad">Quá hạn ${-d} ngày</span>`:d===0?'<span class="ok">Hôm nay</span>':`Hạn ${fmtD(t.due).slice(0,5)}`):'Không hạn';
+  const proj=S.projects.find(p=>p.id===t.projectId);
+  return `<div class="task ${t.done?'done':''}" style="--pc:${PCOL[t.priority]}">
+    <button class="chk ${t.done?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')" aria-label="Hoàn thành">${t.done?'✓':''}</button>
+    <div class="grow" onclick="openTask('${t.id}')">
+      <div class="tt">${o.rank?`<span class="rank">${o.rank}</span>`:''}${esc(t.title)}</div>
+      <div class="meta">${due}${t.time?' · '+t.time:''} · ${fmt(t.duration)}${t.tag?' · #'+esc(t.tag):''}${proj?` · <span style="color:${proj.color}">${esc(proj.name)}</span>`:''}${t.repeat!=='none'?' · ↻':''}${t.subtasks.length?` · ${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length} mục`:''}</div>
+      ${t.subtasks.length?`<div class="pbar"><i style="width:${Math.round(prog*100)}%"></i></div>`:''}
+      ${o.factors?`<details onclick="event.stopPropagation()"><summary>Vì sao ${o.score}/100?</summary><ul>${o.factors.map(f=>`<li>${f[0]}: +${f[1]}</li>`).join('')}</ul></details>`:''}
+    </div>
+    ${o.score!==undefined&&!o.factors?`<span class="scr">${o.score}</span>`:''}
+    <button class="x" onclick="event.stopPropagation();postpone('${t.id}')" aria-label="Dời sang ngày mai">⟳</button>
+  </div>`;
+}
+
+function setStatus(t,st){t.status=st;t.done=st==='done';t.doneAt=t.done?new Date().toISOString():null;}
+function toggleDone(id){
+  const t=find(id);if(!t)return;
+  setStatus(t,t.done?'todo':'done');
+  if(t.done&&t.repeat&&t.repeat!=='none'){
+    S.tasks.push({...t,id:uid(),done:false,doneAt:null,status:'todo',postponed:0,reminded:false,
+      subtasks:t.subtasks.map(s=>({...s,done:false})),due:addDays(t.due||todayStr(),t.repeat==='daily'?1:7),created:new Date().toISOString()});
+    toast('Đã tạo lần lặp tiếp theo');
+  }
+  save();renderAll();
+}
+function postpone(id){
+  const t=find(id);if(!t)return;
+  t.due=addDays(t.due||todayStr(),1);t.postponed=(t.postponed||0)+1;
+  save();renderAll();toast('Đã dời sang ngày mai');
+}
+
+/* ============ TASK SHEET ============ */
+function openTask(id,pre={}){
+  const t=id?find(id):null;
+  const v=t||{title:'',notes:'',due:pre.due||'',time:'',priority:2,duration:30,tag:'',projectId:pre.projectId||'',repeat:'none',subtasks:[]};
+  draftSub=(v.subtasks||[]).map(s=>({...s}));
+  nextStatus=pre.status||'todo';
+  $('sheet').innerHTML=`
+   <div class="grab"></div>
+   <div class="sh-h"><h3>${t?'Sửa công việc':'Công việc mới'}</h3><button class="x" onclick="closeSheet()" aria-label="Đóng">✕</button></div>
+   <input id="f-title" class="big-in" placeholder="Tên công việc" value="${esc(v.title)}">
+   <textarea id="f-notes" placeholder="Ghi chú">${esc(v.notes||'')}</textarea>
+   <div class="grid2"><div><label>Hạn</label><input type="date" id="f-due" value="${v.due||''}"></div><div><label>Giờ</label><input type="time" id="f-time" value="${v.time||''}"></div></div>
+   <div class="grid2"><div><label>Ưu tiên</label><select id="f-pri"><option value="3">Cao</option><option value="2">Trung bình</option><option value="1">Thấp</option></select></div><div><label>Thời lượng (phút)</label><input type="number" id="f-dur" min="5" step="5" value="${v.duration}"></div></div>
+   <div class="grid2"><div><label>Dự án</label><select id="f-proj"><option value="">Không</option>${S.projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div><div><label>Lặp lại</label><select id="f-rep"><option value="none">Không</option><option value="daily">Hằng ngày</option><option value="weekly">Hằng tuần</option></select></div></div>
+   <label>Thẻ</label><input id="f-tag" value="${esc(v.tag||'')}" placeholder="VD: KhachHang">
+   <label>Checklist</label><div id="f-subs"></div>
+   <div class="row" style="padding:0 0 10px"><input id="f-subnew" placeholder="Thêm mục…" style="margin:0" onkeydown="if(event.key==='Enter'){event.preventDefault();addSub();}"><button class="mini" onclick="addSub()">Thêm</button></div>
+   <div class="btns">${t?`<button class="btn danger" onclick="delTask('${t.id}')">Xóa</button>`:''}<button class="btn primary" onclick="saveTask('${t?t.id:''}')">Lưu</button></div>`;
+  $('f-pri').value=String(v.priority);$('f-proj').value=v.projectId||'';$('f-rep').value=v.repeat||'none';
+  renderSubs();$('sheetbg').classList.add('on');
+}
+function renderSubs(){
+  $('f-subs').innerHTML=draftSub.map((s,i)=>`<div class="row"><button class="chk ${s.done?'on':''}" onclick="draftSub[${i}].done=!draftSub[${i}].done;renderSubs()">${s.done?'✓':''}</button><div class="grow" style="${s.done?'text-decoration:line-through;color:var(--mut)':''}">${esc(s.text)}</div><button class="x" onclick="draftSub.splice(${i},1);renderSubs()">✕</button></div>`).join('')||'<small>Chưa có mục nào</small>';
+}
+function addSub(){const v=$('f-subnew').value.trim();if(!v)return;draftSub.push({id:uid(),text:v,done:false});$('f-subnew').value='';renderSubs();}
+function closeSheet(){$('sheetbg').classList.remove('on');}
+function saveTask(id){
+  const title=$('f-title').value.trim();if(!title){toast('Nhập tên công việc');return;}
+  const vals={title,notes:$('f-notes').value.trim(),due:$('f-due').value||'',time:$('f-time').value||'',priority:+$('f-pri').value,duration:Math.max(5,+$('f-dur').value||30),tag:$('f-tag').value.trim(),projectId:$('f-proj').value,repeat:$('f-rep').value,subtasks:draftSub};
+  if(id){const t=find(id);if(t)Object.assign(t,vals);}
+  else{S.tasks.push(makeTask({...vals,status:nextStatus,done:nextStatus==='done'}));}
+  closeSheet();save();renderAll();toast('Đã lưu');
+}
+function delTask(id){
+  if(!confirm('Xóa công việc này?'))return;
+  S.tasks=S.tasks.filter(t=>t.id!==id);closeSheet();save();renderAll();toast('Đã xóa');
+}
+
+/* ============ DASHBOARD ============ */
+function renderDash(){
+  const T=todayStr(),h=new Date().getHours();
+  $('hi').textContent=(h<11?'Chào buổi sáng':h<14?'Chào buổi trưa':h<18?'Chào buổi chiều':'Chào buổi tối')+(S.settings.name?', '+S.settings.name:'');
+  $('dt').textContent=new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'long'});
+  $('avatar').textContent=(S.settings.name||'F').trim()[0].toUpperCase();
+  const due=S.tasks.filter(t=>t.due===T),doneN=due.filter(t=>t.done).length;
+  const p=due.length?doneN/due.length:0;
+  const over=open_().filter(t=>t.due&&t.due<T).length;
+  const st=stats(),fm=focusOn(T);
+  const hab=S.habits.filter(x=>isDue(x,T)),habDone=hab.filter(x=>x.log[T]).length;
+  const top=open_().map(t=>({t,...score(t)})).sort((a,b)=>b.score-a.score).slice(0,3);
+  const plan=todayPlan();
+  $('v-dash').innerHTML=`
+  <div class="hero">
+    <div><div class="lbl">Tiến độ hôm nay</div><div class="big">${doneN}/${due.length}</div><div class="sub">Năng suất ${st.total}/100 · ${st.trend}</div></div>
+    <div>${ring(p,88,9,Math.round(p*100)+'%')}</div>
+  </div>
+  <div class="tiles">${tile(open_().length,'Đang làm')}${tile(over,'Quá hạn',over?'bad':'')}${tile(fm+'p','Tập trung')}${tile(habDone+'/'+hab.length,'Thói quen')}</div>
+  <div class="card"><div class="ch"><h3>Ưu tiên</h3><small>Thuật toán điểm</small></div>${top.length?top.map((x,i)=>taskRow(x.t,{rank:i+1,score:x.score,factors:x.factors})).join(''):empty('Chưa có việc đang làm')}</div>
+  <div class="card"><div class="ch"><h3>Kế hoạch hôm nay</h3><small>${plan.length} khối</small></div>${plan.length?plan.map(b=>`<div class="tl"><b>${hhmm(b.start)}</b><div><div class="tt">${esc(b.t.title)}</div><small>${fmt(b.mins)}</small></div></div>`).join(''):empty('Không có việc cần làm hôm nay')}</div>
+  <div class="card"><div class="ch"><h3>Thói quen hôm nay</h3></div>${hab.length?hab.map(x=>`<div class="row"><button class="chk ${x.log[T]?'on':''}" onclick="toggleHabit('${x.id}','${T}')">${x.log[T]?'✓':''}</button><div class="grow">${esc(x.name)}</div><small>chuỗi ${streak(x)}</small></div>`).join(''):empty('Chưa có thói quen nào hôm nay')}</div>
+  <div class="card"><div class="ch"><h3>Phân tích thông minh</h3></div>${insights().map(i=>`<div class="ins ${i.warn?'warn':''}">${i.text}${i.why?`<small>${i.why}</small>`:''}</div>`).join('')}</div>
+  <div class="card"><div class="ch"><h3>14 ngày gần nhất</h3><small>${st.avgPerDay.toFixed(1)} việc/ngày</small></div>${spark(st.series.map(s=>s.n),accent())}</div>`;
+}
+
+/* ============ TASKS ============ */
+function renderTasks(){
+  const T=todayStr(),q=$('search').value.trim().toLowerCase();
+  const fm={open:t=>!t.done,all:()=>true,today:t=>!t.done&&!!t.due&&t.due<=T,urgent:t=>!t.done&&score(t).score>=70,overdue:t=>!t.done&&!!t.due&&t.due<T,done:t=>t.done};
+  let list=S.tasks.filter(fm[taskFilter]||fm.open).filter(t=>!q||(t.title+' '+t.tag+' '+t.notes).toLowerCase().includes(q));
+  const sc=new Map(list.map(t=>[t.id,score(t)]));
+  list.sort((a,b)=>(a.done-b.done)||(sc.get(b.id).score-sc.get(a.id).score));
+  $('chips').innerHTML=[['open','Đang làm'],['today','Hôm nay'],['urgent','Khẩn cấp'],['overdue','Quá hạn'],['done','Đã xong'],['all','Tất cả']]
+    .map(([k,l])=>`<button class="chip ${taskFilter===k?'on':''}" onclick="taskFilter='${k}';renderTasks()">${l}</button>`).join('');
+  $('tasklist').innerHTML=list.length?list.map(t=>taskRow(t,{score:sc.get(t.id).score})).join(''):empty('Không có công việc nào. Thử nhập ở ô phía trên!');
+}
+
+/* ============ CALENDAR ============ */
+function weekStartOf(s){const wk=S.settings.weekStart??1;return addDays(s,-((dowOf(s)-wk+7)%7));}
+function dayInfo(date,byDate){const pl=byDate[date];return{load:pl?pl.load:0,items:pl?pl.items:[],due:S.tasks.filter(t=>t.due===date&&!t.done)};}
+function dayRow(date,byDate){
+  const x=dayInfo(date,byDate),pct=Math.min(100,Math.round(x.load/cap()*100)),hot=x.load>=cap();
+  const dueOnly=x.due.filter(t=>!x.items.some(i=>i.t.id===t.id));
+  return `<div class="row" style="align-items:flex-start"><div class="grow"><div class="tt" style="font-size:14px">${dayLabel(date)}</div>
+    <div class="meta">${x.items.length} việc đã xếp · ${fmt(x.load)} / ${S.settings.capacity}h${hot?' · <span class="bad">quá tải</span>':''}</div>
+    <div class="pbar"><i style="width:${pct}%;${hot?'background:var(--bad)':''}"></i></div>
+    ${x.items.map(it=>`<div class="meta" style="margin-top:4px">• <a href="#" onclick="event.preventDefault();openTask('${it.t.id}')" style="color:inherit">${esc(it.t.title)}</a> (${fmt(it.mins)})</div>`).join('')}
+    ${dueOnly.map(t=>`<div class="meta" style="margin-top:4px">◦ Hạn: ${esc(t.title)}</div>`).join('')}
+  </div><button class="mini" onclick="openTask(null,{due:'${date}'})">+</button></div>`;
+}
+function dayLabel(date){const[y,m,d]=date.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('vi-VN',{weekday:'long',day:'2-digit',month:'2-digit'});}
+function monthGrid(byDate){
+  const[y,m]=calAnchor.split('-').map(Number);
+  const first=ds(new Date(y,m-1,1)),start=weekStartOf(first);
+  const names=(S.settings.weekStart??1)===1?['T2','T3','T4','T5','T6','T7','CN']:['CN','T2','T3','T4','T5','T6','T7'];
+  let h='<div class="mgrid">'+names.map(n=>`<div class="mh">${n}</div>`).join('');
+  for(let i=0;i<42;i++){
+    const date=addDays(start,i),x=dayInfo(date,byDate);
+    const inM=date.slice(0,7)===first.slice(0,7);
+    const dots=(x.load>0?'<i class="pl"></i>':'')+(x.due.length?'<i class="dl"></i>':'');
+    h+=`<button class="mcell ${inM?'':'out'} ${date===todayStr()?'today':''} ${date===calSel?'sel':''}" onclick="pickDay('${date}')"><span>${+date.slice(8)}</span><span class="dots">${dots}</span></button>`;
+  }
+  return h+'</div>';
+}
+function renderCal(){
+  const sim=simulate(),byDate=Object.fromEntries(sim.days.map(d=>[d.date,d]));
+  const seg=`<div class="chips"><button class="chip ${calView==='week'?'on':''}" onclick="setCalView('week')">Tuần</button><button class="chip ${calView==='month'?'on':''}" onclick="setCalView('month')">Tháng</button><button class="chip" onclick="calToday()">Hôm nay</button></div>`;
+  let title,body;
+  if(calView==='week'){
+    const ws=weekStartOf(calAnchor),we=addDays(ws,6);
+    title=`${fmtD(ws).slice(0,5)} – ${fmtD(we).slice(0,5)}`;
+    body=Array.from({length:7},(_,i)=>dayRow(addDays(ws,i),byDate)).join('');
+  }else{
+    const[y,m]=calAnchor.split('-').map(Number);
+    title=new Date(y,m-1,1).toLocaleDateString('vi-VN',{month:'long',year:'numeric'});
+    body=monthGrid(byDate)+`<div class="ch" style="margin-top:8px"><h3>${dayLabel(calSel)}</h3></div>`+dayRow(calSel,byDate);
+  }
+  $('v-cal').innerHTML=seg+`<div class="ch" style="margin:6px 4px 10px"><button class="x" onclick="calNav(-1)">‹</button><b style="font-size:16px;text-transform:capitalize">${title}</b><button class="x" onclick="calNav(1)">›</button></div>`+body;
+}
+function setCalView(v){calView=v;renderCal();}
+function calNav(n){
+  if(calView==='week')calAnchor=addDays(calAnchor,7*n);
+  else{const[y,m]=calAnchor.split('-').map(Number);calAnchor=ds(new Date(y,m-1+n,1));}
+  renderCal();
+}
+function calToday(){calAnchor=todayStr();calSel=todayStr();renderCal();}
+function pickDay(s){calSel=s;renderCal();}
+
+/* ============ PROJECTS ============ */
+function renderProjShell(){
+  $('p-sw').innerHTML=PCOLORS.map(c=>`<button style="background:${c}" class="${c===newProjColor?'on':''}" onclick="newProjColor='${c}';renderProjShell()" aria-label="${c}"></button>`).join('');
+}
+function addProj(){
+  const name=$('p-name').value.trim();if(!name){toast('Nhập tên dự án');return;}
+  S.projects.push({id:uid(),name,color:newProjColor,deadline:$('p-due').value||'',created:new Date().toISOString()});
+  $('p-name').value='';$('p-due').value='';
+  save();renderAll();toast('Đã tạo dự án');
+}
+function delProj(id){
+  if(!confirm('Xóa dự án? Công việc trong dự án sẽ được giữ lại.'))return;
+  S.projects=S.projects.filter(p=>p.id!==id);S.tasks.forEach(t=>{if(t.projectId===id)t.projectId='';});
+  save();renderAll();
+}
+function renderProj(){
+  renderProjShell();
+  $('projlist').innerHTML=S.projects.length?S.projects.map(p=>{
+    const ts=S.tasks.filter(t=>t.projectId===p.id),dn=ts.filter(t=>t.done).length,pct=ts.length?dn/ts.length:0;
+    return `<div class="card pj" onclick="openPage('kanban','${p.id}')"><div class="pjr"><div style="color:${p.color}">${ring(pct,64,7,Math.round(pct*100)+'%')}</div><div class="grow"><h3 style="color:${p.color}">${esc(p.name)}</h3><div class="meta">${dn}/${ts.length} việc${p.deadline?' · hạn '+fmtD(p.deadline):''}</div></div><button class="x" onclick="event.stopPropagation();delProj('${p.id}')" aria-label="Xóa">✕</button></div></div>`;
+  }).join(''):empty('Chưa có dự án. Tạo dự án đầu tiên ở trên.');
+}
+
+/* ============ HABITS ============ */
+function toggleHabit(id,d){
+  const h=S.habits.find(x=>x.id===id);if(!h)return;
+  if(h.log[d])delete h.log[d];else h.log[d]=true;
+  save();renderAll();
+}
+function addHabit(){
+  const name=$('h-name').value.trim();if(!name){toast('Nhập tên thói quen');return;}
+  const freq=$('h-freq').value,target=+$('h-target').value||3;
+  S.habits.push({id:uid(),name,freq,target,log:{},created:todayStr()});
+  save();renderAll();toast('Đã thêm thói quen');
+}
+function delHabit(id){if(!confirm('Xóa thói quen và toàn bộ lịch sử?'))return;S.habits=S.habits.filter(h=>h.id!==id);save();renderAll();}
+function renderHabits(){
+  const T=todayStr();
+  $('pbody').innerHTML=`<div class="hcard"><label>Thói quen mới</label><input id="h-name" placeholder="VD: Đọc 20 phút">
+    <div class="grid2"><div><label>Tần suất</label><select id="h-freq"><option value="daily">Hằng ngày</option><option value="weekdays">Ngày trong tuần</option><option value="weekly">Theo tuần</option></select></div><div><label>Mục tiêu/tuần</label><input type="number" id="h-target" min="1" max="7" value="3"></div></div>
+    <button class="btn primary" onclick="addHabit()">Thêm thói quen</button></div>`+
+  (S.habits.length?S.habits.map(h=>{
+    const s=streak(h),r=rate30(h);
+    const cells=Array.from({length:30},(_,i)=>{const d=addDays(T,-29+i);return `<i class="${h.log[d]?'on':''} ${isDue(h,d)&&!h.log[d]?'due':''}" title="${fmtD(d)}"></i>`;}).join('');
+    return `<div class="hcard"><div class="ch"><h3>${esc(h.name)}</h3><button class="x" onclick="delHabit('${h.id}')">✕</button></div>
+      <div class="meta">${h.freq==='weekly'?`Mục tiêu ${h.target}/tuần`:h.freq==='weekdays'?'Ngày trong tuần':'Hằng ngày'} · chuỗi <b style="color:var(--acc)">${s}</b> · 30 ngày ${r}%</div>
+      <div class="hm">${cells}</div>
+      <div class="btns"><button class="btn ${h.log[T]?'ghost':'primary'}" onclick="toggleHabit('${h.id}','${T}')">${h.log[T]?'Bỏ đánh dấu hôm nay':'Hoàn thành hôm nay'}</button></div></div>`;
+  }).join(''):empty('Chưa có thói quen. Tạo thói quen đầu tiên ở trên.'));
+}
+
+/* ============ FOCUS (Pomodoro) ============ */
+const TM={run:false,mode:'focus',preset:25,breakM:5,total:25*60,left:25*60,taskId:'',int:null};
+function setPreset(f,b){if(TM.run)return;TM.preset=f;TM.breakM=b;setMode('focus');renderFocus();}
+function setMode(m){TM.mode=m;TM.total=(m==='focus'?TM.preset:TM.breakM)*60;TM.left=TM.total;}
+function tToggle(){
+  if(TM.run){clearInterval(TM.int);TM.run=false;}
+  else{TM.run=true;TM.int=setInterval(tickT,1000);}
+  renderFocus();
+}
+function tReset(){clearInterval(TM.int);TM.run=false;setMode(TM.mode);renderFocus();}
+function tickT(){
+  TM.left--;
+  if(TM.left<=0){finishT();return;}
+  updFocusRing();
+}
+function finishT(){
+  clearInterval(TM.int);TM.run=false;beep();
+  if(TM.mode==='focus'){
+    const mins=Math.round(TM.total/60);
+    S.focus.push({id:uid(),date:todayStr(),mins,taskId:TM.taskId||''});
+    const t=find(TM.taskId);if(t)t.focusMins=(t.focusMins||0)+mins;
+    save();toast('Hoàn thành phiên tập trung. Nghỉ một chút nhé!');
+    setMode('break');
+  }else{toast('Hết giờ nghỉ, sẵn sàng tập trung tiếp');setMode('focus');}
+  renderAll();renderFocus();
+}
+function beep(){try{const c=new(window.AudioContext||window.webkitAudioContext)();const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.setValueAtTime(.25,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+1.2);o.start();o.stop(c.currentTime+1.2);}catch(e){}}
+function updFocusRing(){const r=$('fring');if(r)r.innerHTML=ring(1-TM.left/TM.total,200,12,mmss(TM.left));const b=$('fbtn');if(b)b.textContent=TM.run?'Tạm dừng':'Bắt đầu';}
+function renderFocus(){
+  const T=todayStr();
+  const today=S.focus.filter(f=>f.date===T),todayMin=today.reduce((a,f)=>a+f.mins,0);
+  const days=Array.from({length:7},(_,i)=>addDays(T,-6+i));
+  const wk=days.map(d=>focusOn(d));
+  const weekTotal=wk.reduce((a,b)=>a+b,0);
+  const labels=days.map(d=>['CN','T2','T3','T4','T5','T6','T7'][dowOf(d)]);
+  $('pbody').innerHTML=`
+  <div class="modes">
+    <button class="${TM.preset===25?'on':''}" onclick="setPreset(25,5)">25 / 5</button>
+    <button class="${TM.preset===50?'on':''}" onclick="setPreset(50,10)">50 / 10</button>
+    <button class="${TM.preset===15?'on':''}" onclick="setPreset(15,3)">15 / 3</button>
+  </div>
+  <div class="timer">
+    <div class="meta" style="color:var(--mut);margin-bottom:6px">${TM.mode==='focus'?'Tập trung':'Nghỉ'}</div>
+    <div id="fring" style="display:flex;justify-content:center">${ring(1-TM.left/TM.total,200,12,mmss(TM.left))}</div>
+    <select id="ftask" onchange="TM.taskId=this.value" style="margin-top:14px"><option value="">Không gắn việc</option>${open_().map(t=>`<option value="${t.id}" ${TM.taskId===t.id?'selected':''}>${esc(t.title)}</option>`).join('')}</select>
+    <div class="btns" style="margin-top:12px"><button id="fbtn" class="btn primary" onclick="tToggle()">${TM.run?'Tạm dừng':'Bắt đầu'}</button><button class="btn ghost" onclick="tReset()">Đặt lại</button></div>
+  </div>
+  <div class="tiles"><div class="tile"><b>${today.length}</b><span>Phiên hôm nay</span></div><div class="tile"><b>${todayMin}p</b><span>Hôm nay</span></div><div class="tile"><b>${weekTotal}p</b><span>7 ngày</span></div></div>
+  <div class="card"><div class="ch"><h3>7 ngày gần nhất</h3><small>phút tập trung</small></div>${bars(wk,labels)}</div>
+  <div class="card"><div class="ch"><h3>Phiên gần đây</h3></div>${S.focus.slice(-6).reverse().map(f=>{const t=find(f.taskId);return `<div class="row"><div class="grow">${t?esc(t.title):'Phiên tự do'}</div><small>${fmtD(f.date).slice(0,5)} · ${f.mins}p</small></div>`;}).join('')||empty('Chưa có phiên nào')}</div>`;
+}
+
+/* ============ ANALYTICS ============ */
+function renderStats(){
+  const st=stats(),T=todayStr(),d=doneList();
+  const cnt=(a,b)=>d.filter(t=>{const x=t.doneAt.slice(0,10);return x>=a&&x<=b;}).length;
+  const thisW=cnt(addDays(T,-6),T),prevW=cnt(addDays(T,-13),addDays(T,-7));
+  const chg=prevW?Math.round((thisW-prevW)/prevW*100):null;
+  const od=open_().filter(t=>t.due&&t.due<T).map(t=>diffDays(t.due,T));
+  const buckets=[['1–3 ngày',od.filter(x=>x<=3).length],['4–7 ngày',od.filter(x=>x>3&&x<=7).length],['8+ ngày',od.filter(x=>x>7).length]];
+  const month=T.slice(0,7),mDone=d.filter(t=>t.doneAt.startsWith(month)).length;
+  const mFocus=S.focus.filter(f=>f.date.startsWith(month)).reduce((a,f)=>a+f.mins,0);
+  const f7=Array.from({length:7},(_,i)=>addDays(T,-6+i));
+  const projP=S.projects.map(p=>{const ts=S.tasks.filter(t=>t.projectId===p.id);return {p,pct:ts.length?Math.round(ts.filter(t=>t.done).length/ts.length*100):0,n:ts.length};});
+  const habTop=[...S.habits].sort((a,b)=>streak(b)-streak(a)).slice(0,5);
+  $('pbody').innerHTML=`
+  <div class="card"><div class="ch"><h3>Điểm năng suất</h3><small>${st.total}/100</small></div>
+    <div class="stat-row"><span>Hoàn thành (30)</span><b>${st.parts.completion}</b></div>
+    <div class="stat-row"><span>Đúng hạn (40)</span><b>${st.parts.onTime}</b></div>
+    <div class="stat-row"><span>Đều đặn 14 ngày (30)</span><b>${st.parts.consistency}</b></div>
+    <div class="stat-row"><span>Trừ quá hạn</span><b class="bad">${st.parts.penalty}</b></div></div>
+  <div class="card"><div class="ch"><h3>Tuần này</h3><small>${chg===null?'':(chg>=0?'+':'')+chg+'% so với tuần trước'}</small></div>
+    <div class="stat-row"><span>Hoàn thành 7 ngày qua</span><b>${thisW}</b></div>
+    <div class="stat-row"><span>7 ngày trước đó</span><b>${prevW}</b></div>
+    <div class="stat-row"><span>Xu hướng 14 ngày</span><b>${st.trend}</b></div></div>
+  <div class="card"><div class="ch"><h3>Báo cáo tháng</h3><small>${month}</small></div>
+    <div class="stat-row"><span>Việc hoàn thành</span><b>${mDone}</b></div>
+    <div class="stat-row"><span>Phút tập trung</span><b>${mFocus}p</b></div>
+    <div class="stat-row"><span>Việc đang quá hạn</span><b class="${st.overdue?'bad':''}">${st.overdue}</b></div></div>
+  <div class="card"><div class="ch"><h3>Phân tích quá hạn</h3></div>${buckets.map(([l,n])=>`<div class="stat-row"><span>${l}</span><b>${n}</b></div>`).join('')}</div>
+  <div class="card"><div class="ch"><h3>Hoàn thành 14 ngày</h3></div>${spark(st.series.map(s=>s.n),accent())}</div>
+  <div class="card"><div class="ch"><h3>Tập trung 7 ngày</h3></div>${bars(f7.map(x=>focusOn(x)),f7.map(x=>['CN','T2','T3','T4','T5','T6','T7'][dowOf(x)]))}</div>
+  <div class="card"><div class="ch"><h3>Dự án</h3></div>${projP.map(x=>`<div class="stat-row"><span style="color:${x.p.color}">${esc(x.p.name)}</span><b>${x.pct}% · ${x.n} việc</b></div>`).join('')||empty('Chưa có dự án')}</div>
+  <div class="card"><div class="ch"><h3>Chuỗi thói quen</h3></div>${habTop.map(h=>`<div class="stat-row"><span>${esc(h.name)}</span><b>${streak(h)} · ${rate30(h)}%</b></div>`).join('')||empty('Chưa có thói quen')}</div>`;
+}
+
+/* ============ REPORT & GMAIL ============ */
+function buildReport(){
+  const plan=todayPlan(),st=stats(),sim=simulate(),T=todayStr();
+  const L=['BÁO CÁO FLOW — '+new Date().toLocaleDateString('vi-VN'),'',
+    `Năng suất: ${st.total}/100 · Xu hướng: ${st.trend}`,`Quá hạn: ${st.overdue} việc`,`Tập trung hôm nay: ${focusOn(T)} phút`,'','Kế hoạch hôm nay:'];
+  plan.forEach(b=>L.push(`${hhmm(b.start)}–${hhmm(b.start+b.mins)} ${b.t.title}`));
+  if(!plan.length)L.push('(không có việc)');
+  L.push('','3 nhiệm vụ quan trọng:');
+  open_().map(t=>({t,s:score(t).score})).sort((a,b)=>b.s-a.s).slice(0,3).forEach((x,i)=>L.push(`${i+1}. ${x.t.title} (điểm ${x.s})`));
+  if(sim.late.length){L.push('','Nguy cơ trễ hạn:');sim.late.slice(0,5).forEach(x=>L.push('- '+x.t.title+' (hạn '+fmtD(x.t.due)+')'));}
+  if(sim.overloaded.length)L.push('','Cảnh báo quá tải: '+sim.overloaded.slice(0,3).map(d=>fmtD(d.date)).join(', '));
+  return L.join('\n');
+}
+function openReport(){
+  const url='https://mail.google.com/mail/?view=cm&fs=1'
+    +'&to='+encodeURIComponent(S.settings.email||'')
+    +'&su='+encodeURIComponent('FLOW — Báo cáo ngày '+new Date().toLocaleDateString('vi-VN'))
+    +'&body='+encodeURIComponent(buildReport());
+  window.open(url,'_blank');
+}
+let syncTimer;
+function scheduleSync(){
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>{
+    const url=S.settings.sync;if(!url)return;
+    fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({email:S.settings.email||'',report:buildReport(),sentAt:new Date().toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})})}).catch(()=>{});
+  },3000);
+}
+function renderReport(){
+  const sync=!!S.settings.sync;
+  $('pbody').innerHTML=`
+  <div class="card"><div class="ch"><h3>Xem trước báo cáo</h3></div><pre style="white-space:pre-wrap;font-family:inherit;font-size:14px;line-height:1.6;color:var(--txt)">${esc(buildReport())}</pre></div>
+  <div class="card"><div class="ch"><h3>Gửi thủ công</h3></div><button class="btn primary" onclick="openReport()">Soạn trong Gmail</button></div>
+  <div class="card"><div class="ch"><h3>Tự động gửi mỗi sáng</h3><small>${sync?'Đã kết nối':'Chưa kết nối'}</small></div>
+    <div class="meta" style="margin-bottom:8px">Trang HTML không tự gửi khi đã đóng. Dán link Google Apps Script vào Cài đặt để Gmail gửi báo cáo lúc 7–8h sáng (miễn phí, không cần API key). Hướng dẫn nằm trong câu trả lời kèm theo.</div>
+    <button class="btn ghost" onclick="openPage('settings')">Mở cài đặt kết nối</button></div>`;
+}
+
+/* ============ SETTINGS & DATA ============ */
+function applyTheme(){
+  const t=S.settings.theme||'system';
+  document.body.className=t==='system'?'':t;
+  document.documentElement.style.setProperty('--acc',accent());
+  document.documentElement.style.setProperty('--acc2',accent());
+  document.querySelector('meta[name="theme-color"]').content=accent();
+}
+function renderSettings(){
+  const s=S.settings,ac=['#6366F1','#0EA5E9','#10B981','#F59E0B','#EF4444','#EC4899'];
+  $('pbody').innerHTML=`
+  <div class="card"><div class="ch"><h3>Hồ sơ</h3></div>
+    <div class="avatar" style="width:56px;height:56px;font-size:20px;margin-bottom:12px;cursor:default">${(s.name||'F').trim()[0].toUpperCase()}</div>
+    <label>Tên hiển thị</label><input id="s-name" value="${esc(s.name)}" placeholder="Tên của bạn">
+  <div class="card"><div class="ch"><h3>Giao diện</h3></div>
+    <div class="grid2"><div><label>Chế độ</label><select id="s-theme"><option value="system">Theo máy</option><option value="light">Sáng</option><option value="dark">Tối</option></select></div>
+    <div><label>Tuần bắt đầu</label><select id="s-wk"><option value="1">Thứ Hai</option><option value="0">Chủ nhật</option></select></div></div>
+    <label>Màu nhấn</label><div class="sw">${ac.map(c=>`<button style="background:${c}" class="${c===s.accent?'on':''}" onclick="S.settings.accent='${c}';save();applyTheme();renderSettings()" aria-label="${c}"></button>`).join('')}</div></div>
+  <div class="card"><div class="ch"><h3>Năng lực làm việc</h3></div>
+    <div class="grid2"><div><label>Giờ làm mỗi ngày</label><input type="number" id="s-cap" min="1" max="16" step="0.5" value="${s.capacity}"></div><div><label>Bắt đầu lúc</label><input type="time" id="s-start" value="${s.start}"></div></div>
+    <label>Email nhận báo cáo</label><input type="email" id="s-email" value="${esc(s.email)}" placeholder="ban@gmail.com">
+    <label>Link Apps Script (tự gửi mail mỗi sáng)</label><input id="s-sync" value="${esc(s.sync)}" placeholder="https://script.google.com/macros/s/.../exec"></div>
+  <div class="card"><div class="ch"><h3>Thông báo</h3></div><button class="btn ghost" onclick="askNotify()">Bật thông báo nhắc việc</button>
+    <div class="meta" style="margin-top:8px">Ngôn ngữ: Tiếng Việt · Múi giờ: Việt Nam (UTC+7)</div></div>
+  <div class="btns" style="margin-bottom:12px"><button class="btn primary" onclick="saveSettings()">Lưu cài đặt</button></div>`;
+  $('s-theme').value=s.theme||'system';$('s-wk').value=String(s.weekStart??1);
+}
+function saveSettings(){
+  const g=id=>$(id)?$(id).value:null;
+  if(g('s-name')!==null)S.settings.name=g('s-name').trim();
+  if(g('s-theme')!==null)S.settings.theme=g('s-theme');
+  if(g('s-wk')!==null)S.settings.weekStart=+g('s-wk');
+  if(g('s-cap')!==null){const c=+g('s-cap');if(c>0)S.settings.capacity=Math.min(16,c);}
+  if(g('s-start')!==null)S.settings.start=g('s-start')||'08:00';
+  if(g('s-email')!==null)S.settings.email=g('s-email').trim();
+  if(g('s-sync')!==null)S.settings.sync=g('s-sync').trim();
+  save();applyTheme();renderAll();toast('Đã lưu cài đặt');
+}
+function askNotify(){
+  if(!('Notification' in window)){toast('Trình duyệt không hỗ trợ thông báo');return;}
+  Notification.requestPermission().then(p=>toast(p==='granted'?'Đã bật thông báo':'Chưa được cấp quyền'));
+}
+function renderData(){
+  $('pbody').innerHTML=`
+  <div class="card"><div class="ch"><h3>Sao lưu & khôi phục</h3></div>
+    <button class="btn primary" onclick="backup()">Xuất sao lưu JSON</button>
+    <button class="btn ghost" onclick="$('restore-file').click()">Khôi phục từ JSON</button>
+    <input type="file" id="restore-file" accept="application/json" style="display:none" onchange="restore(event)">
+    <button class="btn ghost" onclick="exportCSV()">Xuất CSV</button></div>
+  <div class="card"><div class="ch"><h3>Vùng nguy hiểm</h3></div><button class="btn danger" onclick="wipe()">Xóa toàn bộ dữ liệu</button></div>`;
+}
+function backup(){download(new Blob([JSON.stringify(S,null,2)],{type:'application/json'}),'flow-backup-'+todayStr()+'.json');}
+function restore(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const o=JSON.parse(r.result);if(!Array.isArray(o.tasks))throw new Error();
+      if(!confirm('Khôi phục sẽ thay thế dữ liệu hiện tại. Tiếp tục?'))return;
+      localStorage.setItem(KEY,r.result);S=load();save();applyTheme();renderAll();toast('Đã khôi phục');
+    }catch(err){toast('File sao lưu không hợp lệ');}
+    e.target.value='';
+  };
+  r.readAsText(f);
+}
+function exportCSV(){
+  const head=['title','due','time','priority','duration','tag','status','projectId','doneAt'];
+  const rows=S.tasks.map(t=>head.map(k=>`"${String(t[k]??'').replace(/"/g,'""')}"`).join(','));
+  download(new Blob(['\uFEFF'+[head.join(','),...rows].join('\n')],{type:'text/csv;charset=utf-8'}),'flow-tasks-'+todayStr()+'.csv');
+}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function wipe(){
+  if(!confirm('Xóa toàn bộ công việc, dự án, thói quen và phiên tập trung? Không thể hoàn tác.'))return;
+  S.tasks=[];S.projects=[];S.habits=[];S.focus=[];save();renderAll();toast('Đã xóa toàn bộ');
+}
+
+/* ============ KANBAN PAGE ============ */
+function kcard(t){
+  return `<div class="kc" onclick="openTask('${t.id}')"><div class="tt" style="font-size:14px">${esc(t.title)}</div><div class="meta">${t.due?fmtD(t.due):'Không hạn'} · ${fmt(t.duration)}</div>
+    <div class="kmv"><button onclick="event.stopPropagation();mv('${t.id}',-1)">‹</button><button onclick="event.stopPropagation();mv('${t.id}',1)">›</button></div></div>`;
+}
+function mv(id,dir){
+  const t=find(id);if(!t)return;
+  const order=['todo','doing','done'];const i=Math.max(0,Math.min(2,order.indexOf(t.status)+dir));
+  setStatus(t,order[i]);save();renderAll();
+}
+function renderKanban(id){
+  const p=S.projects.find(x=>x.id===id);if(!p){closePage();return;}
+  const ts=S.tasks.filter(t=>t.projectId===id),dn=ts.filter(t=>t.done).length,pct=ts.length?dn/ts.length:0;
+  const cols=[['todo','Cần làm'],['doing','Đang làm'],['done','Xong']];
+  $('ptitle').textContent=p.name;
+  $('pbody').innerHTML=`
+  <div class="pjhead" style="--pc:${p.color}"><div>${ring(pct,72,8,Math.round(pct*100)+'%')}</div><div><h3>${dn}/${ts.length} việc hoàn thành</h3><div class="meta">${p.deadline?'Hạn '+fmtD(p.deadline):'Không có hạn chót'}</div></div></div>
+  <div class="chips"><button class="chip ${kanbanMode==='kanban'?'on':''}" onclick="kanbanMode='kanban';renderKanban('${id}')">Kanban</button><button class="chip ${kanbanMode==='list'?'on':''}" onclick="kanbanMode='list';renderKanban('${id}')">Danh sách</button><button class="chip" onclick="openTask(null,{projectId:'${id}'})">+ Việc</button></div>
+  ${kanbanMode==='kanban'?`<div class="kan">${cols.map(([k,l])=>{const list=ts.filter(t=>t.status===k);return `<div class="col"><div class="colh"><b>${l}</b><span>${list.length}</span><button class="mini" onclick="openTask(null,{projectId:'${id}',status:'${k}'})">+</button></div>${list.map(kcard).join('')||'<div class="empty sm">Trống</div>'}</div>`;}).join('')}</div>`
+  :`<div class="card">${ts.map(t=>taskRow(t,{score:score(t).score})).join('')||empty('Chưa có việc trong dự án')}</div>`}`;
+}
+
+/* ============ PAGE ROUTER ============ */
+function openPage(name,arg=null){PAGE=name;PARG=arg;$('page').classList.add('on');renderPage();}
+function closePage(){PAGE=null;$('page').classList.remove('on');renderAll();}
+function renderPage(){
+  if(!PAGE)return;
+  const titles={habits:'Thói quen',focus:'Tập trung',stats:'Phân tích',report:'Báo cáo',settings:'Cài đặt',data:'Dữ liệu',kanban:'Dự án'};
+  $('ptitle').textContent=titles[PAGE]||'';
+  if(PAGE==='habits')renderHabits();
+  else if(PAGE==='focus')renderFocus();
+  else if(PAGE==='stats')renderStats();
+  else if(PAGE==='report')renderReport();
+  else if(PAGE==='settings')renderSettings();
+  else if(PAGE==='data')renderData();
+  else if(PAGE==='kanban')renderKanban(PARG);
+}
+
+/* ============ NAV & INIT ============ */
+function renderAll(){
+  renderDash();renderTasks();renderCal();renderProj();
+  if(PAGE&&PAGE!=='settings'&&PAGE!=='focus'&&PAGE!=='habits')renderPage();
+  else if(PAGE==='habits')renderHabits();
+}
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{
+  const v=b.dataset.v;
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('on',x===b));
+  window.scrollTo({top:0,behavior:'smooth'});
+}));
+function checkReminders(){
+  const now=new Date(),hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'),T=todayStr();
+  let changed=false;
+  S.tasks.forEach(t=>{
+    if(!t.done&&!t.reminded&&t.due===T&&t.time&&t.time<=hm){
+      t.reminded=true;changed=true;toast('⏰ '+t.title);
+      if('Notification' in window&&Notification.permission==='granted')new Notification('FLOW',{body:t.title});
+    }
+  });
+  if(now.getHours()>=7&&S.settings.lastPrompt!==T&&!S.settings.sync){S.settings.lastPrompt=T;changed=true;toast('Báo cáo sáng đã sẵn sàng trong mục Thêm › Báo cáo');}
+  if(changed)save();
+  if(changed)renderDash();
+}
+renderProjShell();
+applyTheme();
+renderAll();
+setInterval(()=>{renderDash();},60000);
+setInterval(checkReminders,30000);
+checkReminders();
+</script>
+</body>
+</html>
